@@ -253,6 +253,7 @@ func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath s
 	case "error":
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindError}}
 	}
+	fmt.Println("fuck it")
 	return Type{QualType: &QualType{Package: packagePath, Name: ident.Name}}
 }
 
@@ -265,14 +266,17 @@ func (f *astTypeGenerator) generateTypeFromSelectorExpr(
 		return Type{}, fmt.Errorf("unrecognized expr: %v", selectorExpr)
 	}
 
-	importPath, ok := importMap[ident.String()]
+	shortImport := ident.String()
+
+	importPath, ok := importMap[shortImport]
 	if !ok {
-		return Type{}, fmt.Errorf("unrecognized identifier: %s", ident.String())
+		return Type{}, fmt.Errorf("unrecognized identifier: %s", shortImport)
 	}
 
 	return Type{QualType: &QualType{
-		Package: importPath,
-		Name:    selectorExpr.Sel.String(),
+		Package:          importPath,
+		ShortPackagePath: shortImport,
+		Name:             selectorExpr.Sel.String(),
 	}}, nil
 }
 

@@ -64,7 +64,7 @@ func (i Type) String() string {
 	case i.PrimitiveType != nil:
 		return string(i.PrimitiveType.Kind)
 	case i.QualType != nil:
-		return i.QualType.Package + "." + i.QualType.Name
+		return i.QualType.ShortPackagePath + "." + i.QualType.Name
 	case i.ChanType != nil:
 		dir := "chan"
 		// ChanTypeDirRecv represents a `<-chan`
@@ -171,7 +171,8 @@ type PrimitiveType struct {
 type QualType struct {
 	// Package contains a defined type's package path, that is, the import path
 	// that uniquely identifies the package, such as "encoding/base64".
-	Package string
+	Package          string
+	ShortPackagePath string
 
 	// Name contains the type's name inside the package.
 	// The combination of Package and Name uniquely indentifies a Golang's type.
@@ -407,7 +408,6 @@ type TypeSpec struct {
 	// PackagePath contains a defined type's package path, that is, the import path
 	// that uniquely identifies the package, such as "encoding/base64".
 	PackagePath string
-
 	// Name contains the type's name inside the package.
 	Name string
 }
