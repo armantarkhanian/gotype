@@ -294,7 +294,7 @@ func (i FuncType) String(moduleName string) string {
 	withoutBrackets := len(i.Outputs) == 1
 
 	if len(i.Outputs) == 1 && i.Outputs[0].Type.FuncType != nil {
-		str += " " + i.Outputs[0].Type.String(moduleName)
+		str += " " + i.Outputs[0].Type.String(moduleName) + ")"
 	} else {
 		withNames := false
 
@@ -325,12 +325,32 @@ func (i FuncType) String(moduleName string) string {
 			str += arg.Type.String(moduleName)
 			if !isLast {
 				str += ", "
+			} else {
+				if !withoutBrackets {
+					str += ")"
+				}
 			}
 		}
 	}
-	if !withoutBrackets {
-		str += ")"
+	return str
+}
+
+func (i FuncType) StringWithoutTypes(moduleName string) string {
+	str := "func("
+
+	for j, arg := range i.Inputs {
+		isLast := j+1 == len(i.Inputs)
+		str += arg.Name
+		if i.IsVariadic && isLast {
+			str += "..."
+		}
+		if !isLast {
+			str += ", "
+		}
 	}
+
+	str += ")"
+
 	return str
 }
 
