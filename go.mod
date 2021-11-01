@@ -1,4 +1,4 @@
-module github.com/jauhararifin/gotype
+module gotype
 
 go 1.14
 
