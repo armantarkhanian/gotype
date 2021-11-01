@@ -71,7 +71,7 @@ func (f *astTypeGenerator) generateTypesInSinglePackage(packagePath string, name
 			return nil, err
 		}
 
-		importMap := f.generateImportMap(fileAst)
+		importMap := f.generateImportMap(packagePath, fileAst)
 
 		for name := range remainingNames {
 			spec := f.getDeclarationByName(fileAst, name)
@@ -116,7 +116,7 @@ func (f *astTypeGenerator) parseAstFile(filename string) (*ast.File, error) {
 	return fileAst, nil
 }
 
-func (f *astTypeGenerator) generateImportMap(file *ast.File) map[string]string {
+func (f *astTypeGenerator) generateImportMap(packagePath string, file *ast.File) map[string]string {
 	importMap := make(map[string]string)
 	for _, decl := range file.Decls {
 		if genDecl, ok := decl.(*ast.GenDecl); ok {
@@ -134,6 +134,10 @@ func (f *astTypeGenerator) generateImportMap(file *ast.File) map[string]string {
 				}
 			}
 		}
+	}
+
+	if !strings.Contains(file.Name.Name, "_test") {
+		importMap[packagePath+"__short"] = file.Name.Name
 	}
 	return importMap
 }
@@ -169,7 +173,7 @@ func (f *astTypeGenerator) generateTypeFromExpr(
 	case *ast.SelectorExpr:
 		return f.generateTypeFromSelectorExpr(v, importMap)
 	case *ast.Ident:
-		return f.generateTypeFromIdent(v, targetPkgPath), nil
+		return f.generateTypeFromIdent(v, targetPkgPath, importMap), nil
 	case *ast.StarExpr:
 		typ, err := f.generateTypeFromStarExpr(v, targetPkgPath, importMap)
 		if err != nil {
@@ -212,7 +216,7 @@ func (f *astTypeGenerator) generateTypeFromExpr(
 	return Type{}, fmt.Errorf("unrecognized type: %v", e)
 }
 
-func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath string) Type {
+func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath string, importMap map[string]string) Type {
 	switch ident.Name {
 	case string(PrimitiveKindBool):
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindBool}}
@@ -254,10 +258,11 @@ func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath s
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindError}}
 	}
 
-	// Сюда заходим, если тип определен в пакете main
+	// Так и не понял, почему заходим сюда, но на некоторых импоратх, мы сюда заходим и это все ломает
+	// Покопался в коде, сделал костыль, но надо будет потом все сделать по уму
 	return Type{QualType: &QualType{
 		Package:          packagePath,
-		ShortPackagePath: packagePath,
+		ShortPackagePath: importMap[packagePath+"__short"],
 		Name:             ident.Name,
 	}}
 }

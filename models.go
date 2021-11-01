@@ -69,8 +69,8 @@ func (i Type) String(moduleName string) string {
 		}
 
 		packageName := i.QualType.ShortPackagePath
-		packageName = strings.TrimPrefix(packageName, moduleName+"/")
 
+		packageName = strings.TrimPrefix(packageName, moduleName+"/")
 		return packageName + "." + i.QualType.Name
 	case i.ChanType != nil:
 		dir := "chan"
@@ -317,10 +317,6 @@ func (i FuncType) String(moduleName string) string {
 			if withNames {
 				str += arg.Name
 				str += " "
-			}
-
-			if i.IsVariadic && isLast {
-				str += "..."
 			}
 			str += arg.Type.String(moduleName)
 			if !isLast {
