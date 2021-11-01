@@ -1,4 +1,4 @@
-module gotype
+module github.com/armantarkhanian/gotype
 
 go 1.14
 
