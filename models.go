@@ -59,12 +59,19 @@ type Type struct {
 	InterfaceType *InterfaceType
 }
 
-func (i Type) String() string {
+func (i Type) String(moduleName string) string {
 	switch {
 	case i.PrimitiveType != nil:
 		return string(i.PrimitiveType.Kind)
 	case i.QualType != nil:
-		return i.QualType.ShortPackagePath + "." + i.QualType.Name
+		if i.QualType.ShortPackagePath == moduleName {
+			return i.QualType.Name
+		}
+
+		packageName := i.QualType.ShortPackagePath
+		packageName = strings.TrimPrefix(packageName, moduleName+"/")
+
+		return packageName + "." + i.QualType.Name
 	case i.ChanType != nil:
 		dir := "chan"
 		// ChanTypeDirRecv represents a `<-chan`
@@ -74,21 +81,21 @@ func (i Type) String() string {
 			// ChanTypeDirSend represents a `chan<-`
 			dir = "chan<-"
 		}
-		return dir + " " + i.ChanType.Elem.String()
+		return dir + " " + i.ChanType.Elem.String(moduleName)
 	case i.SliceType != nil:
-		return "[]" + i.SliceType.Elem.String()
+		return "[]" + i.SliceType.Elem.String(moduleName)
 	case i.PtrType != nil:
-		return "*" + i.PtrType.Elem.String()
+		return "*" + i.PtrType.Elem.String(moduleName)
 	case i.ArrayType != nil:
-		return fmt.Sprintf("[%v]%s", i.ArrayType.Len, i.ArrayType.Elem.String())
+		return fmt.Sprintf("[%v]%s", i.ArrayType.Len, i.ArrayType.Elem.String(moduleName))
 	case i.MapType != nil:
-		return fmt.Sprintf("map[%s]%s", i.MapType.Key.String(), i.MapType.Elem.String())
+		return fmt.Sprintf("map[%s]%s", i.MapType.Key.String(moduleName), i.MapType.Elem.String(moduleName))
 	case i.FuncType != nil:
-		return i.FuncType.String()
+		return i.FuncType.String(moduleName)
 	case i.StructType != nil:
 		str := "struct {"
 		for _, field := range i.StructType.Fields {
-			str += "\n    " + field.Name + " " + field.Type.String()
+			str += "\n    " + field.Name + " " + field.Type.String(moduleName)
 		}
 		str += "\n}"
 		return str
@@ -262,11 +269,11 @@ type FuncType struct {
 	IsVariadic bool
 }
 
-func (i FuncType) String() string {
+func (i FuncType) String(moduleName string) string {
 	str := "func("
 
 	if len(i.Inputs) == 1 && i.Inputs[0].Type.FuncType != nil {
-		str += i.Inputs[0].Type.String()
+		str += i.Inputs[0].Type.String(moduleName)
 	} else {
 		for j, arg := range i.Inputs {
 			isLast := j+1 == len(i.Inputs)
@@ -275,7 +282,7 @@ func (i FuncType) String() string {
 			if i.IsVariadic && isLast {
 				str += "..."
 			}
-			str += arg.Type.String()
+			str += arg.Type.String(moduleName)
 			if !isLast {
 				str += ", "
 			}
@@ -287,7 +294,7 @@ func (i FuncType) String() string {
 	withoutBrackets := len(i.Outputs) == 1
 
 	if len(i.Outputs) == 1 && i.Outputs[0].Type.FuncType != nil {
-		str += " " + i.Outputs[0].Type.String()
+		str += " " + i.Outputs[0].Type.String(moduleName)
 	} else {
 		withNames := false
 
@@ -315,7 +322,7 @@ func (i FuncType) String() string {
 			if i.IsVariadic && isLast {
 				str += "..."
 			}
-			str += arg.Type.String()
+			str += arg.Type.String(moduleName)
 			if !isLast {
 				str += ", "
 			}

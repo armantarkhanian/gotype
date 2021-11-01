@@ -253,8 +253,13 @@ func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath s
 	case "error":
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindError}}
 	}
-	fmt.Println("fuck it")
-	return Type{QualType: &QualType{Package: packagePath, Name: ident.Name}}
+
+	// Сюда заходим, если тип определен в пакете main
+	return Type{QualType: &QualType{
+		Package:          packagePath,
+		ShortPackagePath: packagePath,
+		Name:             ident.Name,
+	}}
 }
 
 func (f *astTypeGenerator) generateTypeFromSelectorExpr(
