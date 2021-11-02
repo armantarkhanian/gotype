@@ -59,6 +59,16 @@ type Type struct {
 	InterfaceType *InterfaceType
 }
 
+func (i Type) GetImportString() (short, long string) {
+	switch {
+	case i.QualType != nil:
+		return i.QualType.ShortPackagePath, i.QualType.Package
+	case i.PtrType != nil:
+		return i.PtrType.Elem.GetImportString()
+	}
+	return "", ""
+}
+
 func (i Type) String(moduleName string) string {
 	switch {
 	case i.PrimitiveType != nil:
