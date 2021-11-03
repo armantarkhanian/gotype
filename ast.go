@@ -222,6 +222,8 @@ func (f *astTypeGenerator) generateTypeFromIdent(ident *ast.Ident, packagePath s
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindBool}}
 	case string(PrimitiveKindByte):
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindByte}}
+	case string(PrimitiveKindRune):
+		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindRune}}
 	case string(PrimitiveKindInt):
 		return Type{PrimitiveType: &PrimitiveType{Kind: PrimitiveKindInt}}
 	case string(PrimitiveKindInt8):

@@ -59,7 +59,71 @@ type Type struct {
 	InterfaceType *InterfaceType
 }
 
-func (i Type) GetImportString() (short, long string) {
+func primitiveTypeDefault(i *PrimitiveType) string {
+	switch i.Kind {
+	case PrimitiveKindBool:
+		return "false"
+	case PrimitiveKindByte,
+		PrimitiveKindInt, PrimitiveKindInt8, PrimitiveKindInt16, PrimitiveKindInt32, PrimitiveKindInt64,
+		PrimitiveKindUint, PrimitiveKindUint8, PrimitiveKindUint16, PrimitiveKindUint32, PrimitiveKindUint64, PrimitiveKindRune:
+		return "0"
+	case PrimitiveKindUintptr:
+		return "nil"
+	case PrimitiveKindFloat32, PrimitiveKindFloat64:
+		return "0.0"
+	case PrimitiveKindComplex64:
+		return "complex64(0)"
+	case PrimitiveKindComplex128:
+		return "complex128(0)"
+	case PrimitiveKindString:
+		return fmt.Sprintf("%q", "")
+	case PrimitiveKindError:
+		return "nil"
+	}
+	return ""
+}
+
+func (i *QualType) Default(shortPackageName string) (string, string) {
+	searchList, err := GenerateTypesFromSpecs(TypeSpec{
+		PackagePath: i.Package,
+		Name:        i.Name,
+	})
+	if err != nil || len(searchList) == 0 {
+		return shortPackageName, "nil"
+	}
+
+	t := searchList[0]
+
+	_, s := t.Default(i.ShortPackagePath + "." + i.Name)
+	if strings.HasSuffix(s, "struct{}") {
+		return shortPackageName, "struct{}"
+	}
+	if strings.HasSuffix(s, "interface{}") {
+		return shortPackageName, "nil"
+	}
+
+	return shortPackageName, s
+}
+
+func (i Type) Default(shortPackageName string) (string, string) {
+	switch {
+	case i.PrimitiveType != nil:
+		return shortPackageName, primitiveTypeDefault(i.PrimitiveType)
+	case i.QualType != nil:
+		return i.QualType.Default(shortPackageName)
+	case i.ChanType != nil || i.MapType != nil || i.FuncType != nil || i.SliceType != nil || i.PtrType != nil:
+		return shortPackageName, "nil"
+	case i.ArrayType != nil:
+		return shortPackageName, fmt.Sprintf("[%v]%s{}", i.ArrayType.Len, i.ArrayType.Elem.String(""))
+	case i.StructType != nil:
+		return shortPackageName, "struct{}"
+	case i.InterfaceType != nil:
+		return shortPackageName, "interface{}"
+	}
+	return shortPackageName, "nil"
+}
+
+func (i Type) GetImportString() (shortPackageName, fullPackageName string) {
 	switch {
 	case i.QualType != nil:
 		return i.QualType.ShortPackagePath, i.QualType.Package
@@ -124,6 +188,9 @@ const (
 
 	// PrimitiveKindByte represents Golang's byte
 	PrimitiveKindByte PrimitiveKind = "byte"
+
+	// PrimitiveKindRune represents Golang's rune
+	PrimitiveKindRune PrimitiveKind = "rune"
 
 	// PrimitiveKindInt represents Golang's int
 	PrimitiveKindInt PrimitiveKind = "int"
