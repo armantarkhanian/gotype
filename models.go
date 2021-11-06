@@ -368,43 +368,22 @@ func (i FuncType) String(moduleName string) string {
 
 	str += ")"
 
-	withoutBrackets := len(i.Outputs) == 1
-
-	if len(i.Outputs) == 1 && i.Outputs[0].Type.FuncType != nil {
-		str += " " + i.Outputs[0].Type.String(moduleName) + ")"
-	} else {
-		withNames := false
-
-		for _, arg := range i.Outputs {
-			if !strings.HasPrefix(arg.Name, "out") {
-				withNames = true
-			}
+	for j, arg := range i.Outputs {
+		isLast := j+1 == len(i.Outputs)
+		if j == 0 {
+			str += " ("
 		}
-		withoutBrackets = withoutBrackets && !withNames
-		for j, arg := range i.Outputs {
-			isLast := j+1 == len(i.Outputs)
-			if j == 0 {
-				if withoutBrackets {
-					str += " "
-				} else {
-					str += " ("
-				}
-			}
 
-			if withNames {
-				str += arg.Name
-				str += " "
-			}
-			str += arg.Type.String(moduleName)
-			if !isLast {
-				str += ", "
-			} else {
-				if !withoutBrackets {
-					str += ")"
-				}
-			}
+		str += arg.Name
+		str += " "
+		str += arg.Type.String(moduleName)
+		if !isLast {
+			str += ", "
+		} else {
+			str += ")"
 		}
 	}
+
 	return str
 }
 
