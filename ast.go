@@ -88,8 +88,6 @@ func (f *astTypeGenerator) generateTypesInSinglePackage(packagePath string, name
 	if len(remainingNames) != 0 {
 		// TODO (jauhararifin): give better error message
 		for name := range remainingNames {
-			fmt.Println("gopls -w imports your_code_file.go")
-			fmt.Println("go mod tidy")
 			return nil, fmt.Errorf("cannot find definition of %s. Probably you should organize your go.mod file and impots", name)
 		}
 	}
